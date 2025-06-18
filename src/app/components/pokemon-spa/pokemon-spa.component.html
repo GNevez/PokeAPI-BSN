@@ -1,0 +1,217 @@
+<ion-content [fullscreen]="true" class="bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+  
+<div class="min-h-screen bg-gradient-to-br from-blue-900 via-purple-900 to-indigo-900">
+
+  <header class="relative bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 shadow-2xl">
+    <div class="absolute inset-0 bg-black opacity-20"></div>
+    <div class="relative container mx-auto px-6 py-16 text-center">
+      <div class="flex items-center justify-center mb-6">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mr-4 shadow-lg transform rotate-12">
+          <div class="pokeball"></div>
+        </div>
+        <h1 class="text-6xl font-black text-white drop-shadow-lg">Pokedex GNeves</h1>
+      </div>
+      <p class="text-2xl text-white/90 font-medium mb-8 drop-shadow">Processo Seletivo - BSN Tecnologia</p>
+
+      <div class="max-w-2xl mx-auto">
+        <form (ngSubmit)="handleSearch()" class="relative group">
+          <lucide-icon name="Search" class="absolute left-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-gray-400 group-focus-within:text-blue-500 transition-colors"></lucide-icon>
+          <input
+            type="text"
+            placeholder="Buscar Pokémon..."
+            [(ngModel)]="searchTerm"
+            name="pokemonSearch"
+            (keydown.enter)="handleSearch()"
+            class="w-full pl-12 pr-6 py-4 text-lg rounded-full placeholder-gray-400 !text-gray-600 border-0 shadow-xl focus:ring-4 focus:ring-blue-400/50 focus:outline-none bg-white/95 backdrop-blur transition-all"
+          />
+          <button
+            type="submit"
+            class="absolute w-20 h-10 !rounded-full right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 hover:from-blue-600 hover:to-purple-700 transition-all shadow-lg"
+          >
+            Buscar
+          </button>
+        </form>
+      </div>
+    </div>
+    <div class="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full animate-pulse"></div>
+    <div class="absolute bottom-10 right-10 w-32 h-32 bg-white/5 rounded-full animate-bounce"></div>
+    <div class="absolute top-1/2 left-1/4 w-16 h-16 bg-white/15 rounded-full animate-ping"></div>
+  </header>
+
+  <main class="container mx-auto px-6 py-12 h-auto">
+    <div *ngIf="loading" class="flex items-center justify-center py-20">
+      <div class="text-center">
+        <lucide-icon name="Loader2" class="w-16 h-16 text-yellow-400 animate-spin mx-auto mb-4"></lucide-icon>
+        <p class="text-2xl text-white font-semibold">Carregando Pokémon...</p>
+      </div>
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-12">
+        <div
+          *ngFor="let p of filteredPokemon; trackBy: trackById"
+          (click)="openModal(p)"
+          class="group relative bg-white/10 backdrop-blur-md rounded-3xl p-6 hover:bg-white/20 transition-all duration-300 cursor-pointer border border-white/20 hover:border-white/40 hover:scale-105 hover:shadow-2xl"
+        >
+          <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl"></div>
+          <div class="relative text-center">
+            <div class="mb-4 relative">
+              <div class="w-32 h-32 mx-auto bg-gradient-to-br from-white/20 to-white/5 rounded-full flex items-center justify-center mb-4 group-hover:shadow-xl transition-all">
+                <img
+                  [src]="p.sprites?.other?.['official-artwork']?.front_default || p.sprites?.front_default"
+                  [alt]="p.name"
+                  class="w-24 h-24 object-contain drop-shadow-lg group-hover:scale-110 transition-transform"
+                />
+              </div>
+              <div class="absolute -top-2 -right-2 bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
+                #{{ p.id.toString().padStart(3, '0') }}
+              </div>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3 capitalize">{{ p.name }}</h3>
+            <div class="flex flex-wrap gap-2 justify-center mb-4">
+              <span
+                *ngFor="let type of p.types"
+                [ngClass]="typeColors[type.type.name] || 'bg-gray-400'"
+                class="text-white px-3 py-1 rounded-full text-sm font-semibold capitalize shadow-lg"
+              >
+                {{ type.type.name }}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+              <div class="bg-white/10 rounded-lg p-2">
+                <div class="text-white/70">Altura</div>
+                <div class="text-white font-bold">{{ (p.height / 10) | number:'1.1-1' }}m</div>
+              </div>
+              <div class="bg-white/10 rounded-lg p-2">
+                <div class="text-white/70">Peso</div>
+                <div class="text-white font-bold">{{ (p.weight / 10) | number:'1.1-1' }}kg</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!searchTerm.trim()" class="flex items-center justify-center gap-4">
+        <button
+          (click)="goToPreviousPage()"
+          [disabled]="currentPage === 1"
+          class="!flex !items-center !gap-2 !bg-white/10 !hover:bg-white/20 !disabled:opacity-50 !disabled:cursor-not-allowed !text-white !px-6 !py-3 !rounded-full !transition-all !backdrop-blur !border !border-white/20"
+        >
+          <lucide-icon [img]="ArrowBigLeft" class="w-5 h-5"></lucide-icon>
+          Anterior
+        </button>
+        <span class="text-white font-semibold px-4 py-3 bg-white/10 rounded-full backdrop-blur">
+          {{ currentPage }} de {{ totalPages }}
+        </span>
+        <button
+          (click)="goToNextPage()"
+          [disabled]="currentPage === totalPages"
+          class="!flex !items-center !text-center !justify-center !gap-2 !bg-white/10 !hover:bg-white/20 !disabled:opacity-50 !disabled:cursor-not-allowed !text-white !px-6 !py-3 !rounded-full !transition-all !backdrop-blur !border !border-white/20"
+        >
+          Próximo
+          <lucide-icon [img]="ArrowBigRight" class="w-5 h-5"></lucide-icon>
+        </button>
+      </div>
+    </ng-container>
+  </main>
+
+  <div *ngIf="selectedPokemon" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] relative">
+      <button (click)="closeModal()" class="absolute top-4 right-4 w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-full flex items-center justify-center transition-colors z-10">
+        ✕
+      </button>
+
+      <div class="p-8">
+        <div class="text-center mb-8">
+          <div class="relative inline-block mb-6">
+            <img
+              [src]="selectedPokemon.sprites?.other?.['official-artwork']?.front_default || selectedPokemon.sprites?.front_default"
+              [alt]="selectedPokemon.name"
+              class="w-48 h-48 object-contain mx-auto drop-shadow-2xl"
+            />
+            <div class="absolute -top-4 -right-4 bg-yellow-400 text-black px-4 py-2 rounded-full font-bold text-lg">
+              #{{ selectedPokemon.id.toString().padStart(3, '0') }}
+            </div>
+          </div>
+          <h2 class="text-4xl font-bold text-gray-800 mb-4 capitalize">{{ selectedPokemon.name }}</h2>
+          <div class="flex flex-wrap gap-3 justify-center mb-8">
+            <span
+              *ngFor="let type of selectedPokemon.types"
+              [ngClass]="typeColors[type.type.name] || 'bg-gray-400'"
+              class="text-white px-4 py-2 rounded-full font-semibold capitalize text-lg shadow-lg"
+            >
+              {{ type.type.name }}
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div class="space-y-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <lucide-icon name="Shield" class="w-6 h-6"></lucide-icon>
+              Informações Básicas
+            </h3>
+            <div class="space-y-4">
+              <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                <span class="font-semibold text-gray-600">Altura:</span>
+                <span class="font-bold text-gray-800">{{ (selectedPokemon.height / 10) | number:'1.1-1' }} m</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                <span class="font-semibold text-gray-600">Peso:</span>
+                <span class="font-bold text-gray-800">{{ (selectedPokemon.weight / 10) | number:'1.1-1' }} kg</span>
+              </div>
+              <div class="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
+                <span class="font-semibold text-gray-600">Experiência Base:</span>
+                <span class="font-bold text-gray-800">{{ selectedPokemon.base_experience }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <lucide-icon name="Swords" class="w-6 h-6"></lucide-icon>
+              Status Base
+            </h3>
+            <div class="space-y-3">
+              <div *ngFor="let stat of selectedPokemon.stats" class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="font-semibold text-gray-600 capitalize">{{ stat.stat.name }}:</span>
+                  <span class="font-bold text-gray-800">{{ stat.base_stat }}</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    [style.width]="getStatWidth(stat.base_stat)"
+                    class="bg-gradient-to-r from-blue-500 to-purple-600 h-3 rounded-full transition-all duration-500"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <lucide-icon name="Star" class="w-6 h-6"></lucide-icon>
+            Habilidades
+          </h3>
+          <div class="flex flex-wrap gap-3">
+            <span *ngFor="let ability of selectedPokemon.abilities" class="bg-gradient-to-r from-green-400 to-blue-500 text-white px-4 py-2 rounded-full font-semibold capitalize shadow-lg">
+              {{ ability.ability.name }}
+              <ng-container *ngIf="ability.is_hidden"> (Oculta)</ng-container>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-black/20 backdrop-blur text-center py-8 mt-16">
+    <p class="text-white/80 text-lg">
+      Projeto desenvolvido para processo seletivo <span class="font-bold text-yellow-400">BSN Tecnologia</span>
+    </p>
+    <p class="text-white/60 mt-2">Guilherme Neves / <a href="https://gneves.netlify.app/">Conheça meu trabalho</a></p>
+  </footer>
+
+</div>
+
+</ion-content>

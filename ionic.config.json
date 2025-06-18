@@ -1,0 +1,7 @@
+{
+  "name": "pokeApiBSN",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
