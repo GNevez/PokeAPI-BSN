@@ -6,7 +6,9 @@ O objetivo foi construir uma interface limpa, responsiva e performática para li
 
 ### 👨‍💻 Desenvolvido por
 **Nome:** Guilherme Neves
+
 **LinkedIn:** https://linkedin.com/in/guilherme-neves-a749052a2/
+
 **Portfólio:** https://gneves.netlify.app
 
 
